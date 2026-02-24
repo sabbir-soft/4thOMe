@@ -225,18 +225,32 @@ header p.subtitle {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(240,242,250,0.88);
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    /* FIX: backdrop-filter সব Android Chrome-এ কাজ করে না
+       তাই solid fallback background আগে দিতে হবে */
+    background: rgba(240,242,250,0.97);
     border-bottom: 1px solid rgba(255,255,255,0.5);
     box-shadow: 0 2px 16px rgba(91,94,244,0.07), 0 1px 0 rgba(255,255,255,0.4);
     transition: all var(--transition);
     padding: 0.6rem 1rem;
 }
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    #top-sticky-bar {
+        background: rgba(240,242,250,0.88);
+        backdrop-filter: blur(24px) saturate(1.5);
+        -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    }
+}
 body.dark #top-sticky-bar {
-    background: rgba(15,17,23,0.92);
+    background: rgba(15,17,23,0.97);
     border-bottom-color: rgba(124,127,245,0.1);
     box-shadow: 0 2px 16px rgba(0,0,0,0.4), 0 1px 0 rgba(124,127,245,0.06);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    body.dark #top-sticky-bar {
+        background: rgba(15,17,23,0.92);
+        backdrop-filter: blur(24px) saturate(1.5);
+        -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    }
 }
 #top-sticky-bar .inner {
     max-width: 1200px;
@@ -1689,6 +1703,16 @@ header h1 {
     /* Mobile table */
     .table-wrapper { border-radius: 12px; }
 }
+/* FIX: খুব ছোট স্ক্রিন (320-375px Android) — top bar দুই লাইনে ভেঙে যায় */
+@media (max-width: 380px) {
+    .search-wrap { min-width: 90px; }
+    #top-sticky-bar .inner { gap: 0.3rem; flex-wrap: nowrap; }
+    .neu-btn { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+    /* শুধু icon দেখাও, text লুকাও */
+    #home-button span,
+    #syllabus-button span { display: none !important; }
+    #home-button { padding: 0.4rem 0.6rem; }
+}
 @media (min-width: 768px) {
     #modal-box { border-radius: 24px; }
     #modal-overlay { align-items: center; }
@@ -2753,6 +2777,18 @@ body * {
     transition-duration: 0.25s;
     transition-timing-function: ease;
 }
+/* FIX: SVG ও তার child elements-কে global transition থেকে বাদ দিন
+   নইলে Android Chrome-এ stroke/fill এ unexpected animation হয় */
+svg, svg * {
+    transition-property: none !important;
+}
+/* SVG যেগুলো explicitly animate করা দরকার সেগুলো আলাদাভাবে */
+.bookmark-btn svg {
+    transition: fill 0.25s ease, stroke 0.25s ease, transform 0.25s ease !important;
+}
+.q-chevron svg {
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+}
 /* Override slow transitions for elements that need faster or custom */
 .toggle-thumb { transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.3s ease, box-shadow 0.3s ease !important; }
 .q-body { transition: grid-template-rows 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.32s ease, padding 0.32s ease !important; }
@@ -2813,6 +2849,24 @@ body.theme-switching * {
 
     /* Study timer: smaller on mobile */
     #study-timer { bottom: 1rem; right: 1rem; padding: 0.45rem 0.9rem; }
+
+    /* FIX: মোবাইলে কম গুরুত্বপূর্ণ animations বন্ধ করা (GPU overload এড়াতে) */
+    .sem-orb-ring-2 { animation: none; }
+    .bg-glow::before { animation-duration: 30s; }
+    .bg-glow::after  { animation-duration: 36s; }
+    /* feature card float animation এ stagger কমানো */
+    .fc-icon-wrap { animation-duration: 8s; }
+}
+
+/* FIX: will-change দিয়ে GPU layer তৈরি করা animated elements এ */
+.sem-orb-ring,
+.fc-icon-wrap,
+.syllabus-header-icon {
+    will-change: transform;
+}
+.bg-glow::before,
+.bg-glow::after {
+    will-change: transform;
 }
 
 /* ── DESKTOP SPECIFIC ── */
@@ -3702,6 +3756,9 @@ body.dark footer { color: #5d7290; }
     align-items: center;
     justify-content: center;
     margin-bottom: 1.2rem;
+    /* FIX: inset negative rings (-26px) মোবাইলে বাইরে যায়,
+       margin দিয়ে জায়গা নিশ্চিত করা হয়েছে */
+    margin-top: 32px;
     cursor: default;
 }
 
@@ -3797,6 +3854,12 @@ body.dark footer { color: #5d7290; }
     display: flex;
     align-items: center;
     gap: 0.85rem;
+    /* FIX: romanGlow এর drop-shadow এখানে রাখা হয়েছে যাতে
+       gradient text ঠিকমতো দেখায় সব ব্রাউজারে
+       (.sem-roman এ filter দিলে Android Chrome-এ gradient text ভাঙে) */
+    filter: drop-shadow(0 2px 8px rgba(99,102,241,0.28));
+    animation: romanGlow 3s ease-in-out infinite;
+    will-change: filter;
 }
 
 /* Big Roman numeral */
@@ -3809,12 +3872,12 @@ body.dark footer { color: #5d7290; }
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.02em;
-    filter: drop-shadow(0 2px 8px rgba(99,102,241,0.3));
-    animation: romanGlow 3s ease-in-out infinite;
+    /* FIX: filter এখানে নেই — parent (.sem-number-row) এ আছে
+       filter+gradient-text একসাথে Android Chrome-এ ভাঙে */
 }
 @keyframes romanGlow {
-    0%, 100% { filter: drop-shadow(0 2px 8px rgba(99,102,241,0.3)); }
-    50%       { filter: drop-shadow(0 2px 16px rgba(139,92,246,0.55)); }
+    0%, 100% { filter: drop-shadow(0 2px 8px rgba(99,102,241,0.28)); }
+    50%       { filter: drop-shadow(0 2px 16px rgba(139,92,246,0.5)); }
 }
 
 /* Vertical divider */
@@ -3886,6 +3949,8 @@ body.dark .sem-orb-ring-2 {
     .sem-roman        { font-size: 2.2rem; }
     .sem-orb-ring     { inset: -10px; }
     .sem-orb-ring-2   { inset: -20px; }
+    /* FIX: ছোট inset মানে কম overflow, মার্জিনও কমানো যায় */
+    .sem-hero-badge   { margin-top: 24px !important; }
 }
 
 /* ━━━ 4th superscript styling ━━━ */
@@ -3909,7 +3974,7 @@ body.dark .sem-orb-ring-2 {
 header { padding: 1rem 1rem 0.5rem !important; }
 
 /* Sem badge: less bottom gap */
-.sem-hero-badge { margin-bottom: 0.6rem !important; }
+.sem-hero-badge { margin-bottom: 0.6rem !important; margin-top: 32px !important; }
 
 /* h1 title: snugger */
 header h1 { margin-bottom: 0.1rem !important; }
