@@ -1584,12 +1584,80 @@ function applyTheme() {
 }
 
 // --------------------------------------------------------------------------
-// 13. FAB (Back to Top)
+// 13. FAB (Back to Top) — Smart Mobile Behavior
 // --------------------------------------------------------------------------
 function setupFAB() {
     const fab = document.getElementById('fab');
+    const isMobile = () => window.innerWidth < 768 ||
+                           ('ontouchstart' in window && window.innerWidth < 1024);
+
+    let lastScrollY    = 0;
+    let ticking        = false;
+    let hideTimer      = null;
+    const SHOW_THRESH  = 400;   // এর নিচে সবসময় লুকানো
+    const SCROLL_DELTA = 6;     // এতটুকু scroll হলে direction detect করবে
+
+    function updateFAB() {
+        const currentY  = window.scrollY;
+        const scrolled  = currentY > SHOW_THRESH;
+
+        if (!scrolled) {
+            // পেজের শুরুতে — লুকাও
+            fab.classList.remove('fab-visible', 'fab-peek');
+            lastScrollY = currentY;
+            ticking = false;
+            return;
+        }
+
+        if (isMobile()) {
+            // ─── মোবাইল: স্মার্ট behavior ───
+            const diff = currentY - lastScrollY;
+
+            if (diff > SCROLL_DELTA) {
+                // নিচে scroll করছে → লুকাও
+                fab.classList.remove('fab-visible');
+                fab.classList.add('fab-peek');   // ছোট dot হিসেবে থাকবে
+
+                // hideTimer: স্ক্রল থামলে ৩ সেকেন্ড পরে পুরো লুকাও
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => {
+                    fab.classList.remove('fab-peek');
+                }, 3000);
+
+            } else if (diff < -SCROLL_DELTA) {
+                // উপরে scroll করছে → দেখাও
+                clearTimeout(hideTimer);
+                fab.classList.remove('fab-peek');
+                fab.classList.add('fab-visible');
+            }
+        } else {
+            // ─── Desktop: আগের মতো সহজ behavior ───
+            fab.classList.remove('fab-peek');
+            fab.classList.toggle('fab-visible', scrolled);
+        }
+
+        lastScrollY = currentY;
+        ticking = false;
+    }
+
     window.addEventListener('scroll', () => {
-        fab.style.display = window.scrollY > 400 ? 'flex' : 'none';
+        if (!ticking) {
+            requestAnimationFrame(updateFAB);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // স্ক্রল থামার পর ১.৫ সেকেন্ড পরে মোবাইলে FAB দেখাও
+    let stopTimer = null;
+    window.addEventListener('scroll', () => {
+        if (!isMobile()) return;
+        clearTimeout(stopTimer);
+        if (window.scrollY > SHOW_THRESH) {
+            stopTimer = setTimeout(() => {
+                fab.classList.remove('fab-peek');
+                fab.classList.add('fab-visible');
+            }, 1500);
+        }
     }, { passive: true });
 }
 

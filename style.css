@@ -1208,14 +1208,58 @@ footer span.brand { font-weight: 700; color: var(--accent); }
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(91,94,244,0.4), 0 0 0 4px rgba(91,94,244,0.1);
     display: flex; align-items: center; justify-content: center;
-    transition: all var(--transition);
     font-size: 1.2rem;
+
+    /* ── Smart FAB: opacity+scale দিয়ে show/hide, display:none বাদ ── */
+    opacity: 0;
+    transform: scale(0.6) translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1),
+                transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.25s ease,
+                width 0.3s ease,
+                height 0.3s ease,
+                background 0.25s ease;
 }
-#fab:hover { 
-    transform: scale(1.12) translateY(-3px); 
-    box-shadow: 0 14px 36px rgba(91,94,244,0.55), 0 0 0 6px rgba(91,94,244,0.15); 
+
+/* ── দৃশ্যমান অবস্থা (scroll up / থামলে) ── */
+#fab.fab-visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
+
+/* ── Peek অবস্থা: নিচে scroll করলে ছোট dot হয় ──
+   content পড়ার সময় একটুও distract করে না,
+   কিন্তু FAB সম্পূর্ণ হারিয়ে যায় না            */
+#fab.fab-peek {
+    opacity: 0.35;
+    width: 10px;
+    height: 10px;
+    transform: scale(1) translateY(0);
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(91,94,244,0.4);
+    /* icon লুকানো */
+    overflow: hidden;
+}
+#fab.fab-peek svg { opacity: 0; }
+
+#fab:hover {
+    transform: scale(1.12) translateY(-3px);
+    box-shadow: 0 14px 36px rgba(91,94,244,0.55), 0 0 0 6px rgba(91,94,244,0.15);
 }
 #fab:active { transform: scale(0.96); }
+
+/* ── Desktop: peek behavior বাদ, সরাসরি visible/hidden ── */
+@media (min-width: 768px) {
+    #fab.fab-peek {
+        width: 52px;
+        height: 52px;
+        opacity: 0;
+        pointer-events: none;
+    }
+    #fab.fab-peek svg { opacity: 1; }
+}
 
 /* ---- PAGE SCROLL PROGRESS BAR ---- */
 #scroll-progress-bar {
