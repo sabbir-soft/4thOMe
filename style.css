@@ -314,6 +314,8 @@ body.dark #top-sticky-bar {
 }
 body.dark .search-result-item { border-bottom-color: rgba(255,255,255,0.04); }
 .search-result-item:hover { background: rgba(99,102,241,0.08); }
+.search-result-item:focus { background: rgba(99,102,241,0.1); outline: none; }
+.search-result-item.focused { background: rgba(99,102,241,0.1); }
 .search-result-item:last-child { border-bottom: none; }
 .search-result-item .sr-tag {
     font-size: 0.65rem;
@@ -4318,3 +4320,297 @@ img {
     display: block;
     max-width: 100%;
 }
+
+/* ==========================================================================
+   POLISHED PATCH v5.0 — All fixes consolidated, no conflicts
+   ========================================================================== */
+
+/* ── Meta text (bookmarks/notes) — dark mode aware ── */
+.bm-meta {
+    color: var(--text-3);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.picker-empty-msg {
+    color: var(--text-3);
+    font-size: 0.9rem;
+    font-family: 'Kalpurush', 'Inter', sans-serif;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ACCORDION SPACING — উত্তরের নিচের ফাঁকা কমানো
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   Stack analysis (top → bottom):
+     answer-content padding-bottom  : 0.75rem  (base)
+     answer-actions margin-top       : 1rem     (base)
+     answer-actions padding-top      : 1rem     (base)
+     q-body.open padding-bottom      : 1.5rem   (base)
+     ─────────────────────────────────────────────────
+     Total bottom gap                : ~4.25rem  ← too much
+
+   Target (with action buttons present):
+     answer-content padding-bottom   : 0
+     answer-actions margin-top        : 0.45rem
+     answer-actions padding-top       : 0.45rem
+     q-body.open padding-bottom       : 0.55rem
+     ─────────────────────────────────────────────────
+     Total bottom gap                 : ~1.45rem  ← natural
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* answer-content — শেষ child .answer-actions হলে bottom padding শূন্য */
+.answer-content {
+    padding-bottom: 0 !important;
+}
+
+/* শেষ paragraph/list/heading এর margin-bottom শূন্য */
+.answer-content > p:last-of-type,
+.answer-content > ul:last-child,
+.answer-content > ol:last-child,
+.answer-content > h2:last-child,
+.answer-content > h3:last-child,
+.answer-content > .table-wrapper:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* body content পরিমিত spacing */
+.answer-content p    { margin-bottom: 0.72rem !important; }
+.answer-content li   { margin-bottom: 0.32rem !important; }
+.answer-content h1,
+.answer-content h2   { margin: 0.95rem 0 0.45rem !important; }
+.answer-content h3   { margin: 0.8rem 0 0.38rem !important; }
+.answer-content h1:first-child,
+.answer-content h2:first-child { margin-top: 0 !important; }
+
+/* ── answer-actions row — tight but breathable ── */
+.answer-actions {
+    padding-top: 0.45rem !important;
+    margin-top:  0.45rem !important;
+    padding-bottom: 0 !important;
+    margin-bottom:  0 !important;
+    gap: 0.38rem !important;
+}
+
+/* ── q-body open — এখন action row নিজেই নিচের border ── */
+.q-body.open {
+    padding: 0 1.25rem 0.55rem !important;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+    .answer-content {
+        padding: 0.88rem 0.82rem 0 !important;
+        font-size: 0.92rem !important;
+        line-height: 1.76 !important;
+    }
+    .answer-content p { text-align: left !important; hyphens: none !important; }
+    .q-body.open { padding: 0 0.82rem 0.45rem !important; }
+    .answer-actions {
+        padding-top: 0.38rem !important;
+        margin-top:  0.38rem !important;
+        gap: 0.3rem !important;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ACCORDION POLISH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.q-accordion {
+    border-radius: 18px !important;
+    will-change: box-shadow;
+    transition: box-shadow 0.28s ease, border-color 0.28s ease, transform 0.18s ease !important;
+}
+@media (hover: hover) and (pointer: fine) {
+    .q-accordion:hover { transform: translateY(-1px); }
+}
+.q-body {
+    transition:
+        grid-template-rows 0.36s cubic-bezier(0.4,0,0.2,1),
+        opacity 0.26s ease,
+        padding 0.26s ease !important;
+}
+.q-chevron {
+    transition: transform 0.32s cubic-bezier(0.4,0,0.2,1),
+                background 0.22s ease,
+                box-shadow 0.22s ease !important;
+    flex-shrink: 0 !important;
+}
+.q-header { padding: 0.88rem 1.05rem !important; gap: 0.65rem !important; }
+@media (max-width: 640px) {
+    .q-header { padding: 0.78rem 0.88rem !important; font-size: 0.89rem !important; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MCQ OPTION POLISH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.mcq-option {
+    transition: background 0.2s ease, border-color 0.2s ease,
+                color 0.2s ease, transform 0.16s ease, box-shadow 0.2s ease !important;
+    will-change: transform, background;
+}
+.mcq-option:active { transform: scale(0.975) !important; }
+@media (hover: none) {
+    .mcq-option:hover {
+        transform: none !important;
+        border-color: transparent !important;
+        background: var(--bg2) !important;
+        color: var(--text) !important;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK MODE: MCQ correct/incorrect
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body.dark .mcq-option.correct {
+    background: rgba(16,185,129,0.15) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16,185,129,0.5) !important;
+}
+body.dark .mcq-option.incorrect {
+    background: rgba(244,63,94,0.13) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(244,63,94,0.45) !important;
+}
+body.dark .mcq-option { color: var(--text); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK MODE: Action buttons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body.dark .answer-actions { border-top-color: rgba(124,127,245,0.15) !important; }
+body.dark .action-btn {
+    border-color: rgba(124,127,245,0.2) !important;
+    background: rgba(124,127,245,0.06) !important;
+    color: var(--text-3) !important;
+}
+body.dark .action-btn:hover {
+    border-color: var(--accent-2) !important;
+    color: var(--accent-2) !important;
+    background: rgba(124,127,245,0.12) !important;
+}
+body.dark .action-btn.read-done {
+    border-color: var(--accent-4) !important;
+    color: var(--accent-4) !important;
+    background: rgba(16,185,129,0.1) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK MODE: Search, Table, general
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body.dark #search-results-dropdown {
+    background: var(--surface-2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(124,127,245,0.18);
+}
+body.dark .search-result-item { border-bottom-color: rgba(255,255,255,0.05); }
+body.dark .search-result-item:hover,
+body.dark .search-result-item.focused { background: rgba(124,127,245,0.1); }
+body.dark mark { background: rgba(124,127,245,0.25); color: var(--accent-2); }
+body.dark .table-wrapper { background: var(--surface-2) !important; }
+body.dark .answer-content td {
+    background: var(--surface-2);
+    color: var(--text) !important;
+    border-color: rgba(124,127,245,0.1) !important;
+}
+body.dark .answer-content tbody tr:nth-child(even) td {
+    background: rgba(124,127,245,0.07) !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCROLL PROGRESS BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#scroll-progress-bar {
+    height: 3px !important;
+    border-radius: 0 99px 99px 0;
+    will-change: width;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REVEAL ANIMATION — subtler, faster
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(14px) !important;
+    transition: opacity 0.4s cubic-bezier(0.4,0,0.2,1),
+                transform 0.4s cubic-bezier(0.4,0,0.2,1) !important;
+}
+.reveal-on-scroll.is-visible { opacity: 1 !important; transform: translateY(0) !important; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOAST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.toast {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(99,102,241,0.12) !important;
+}
+body.dark .toast {
+    border-color: rgba(124,127,245,0.18) !important;
+    background: rgba(33,37,58,0.95) !important;
+}
+@keyframes toastIn {
+    from { transform: translateX(50px) scale(0.95); opacity: 0; }
+    to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+@keyframes toastOut {
+    from { transform: translateX(0) scale(1); opacity: 1; }
+    to   { transform: translateX(50px) scale(0.95); opacity: 0; }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NEU-BTN focus & active
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.neu-btn:focus-visible {
+    outline: 2.5px solid var(--accent);
+    outline-offset: 2px;
+}
+.neu-btn:active {
+    transform: translateY(1px) scale(0.974) !important;
+    transition-duration: 0.08s !important;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MOBILE: no sticky hover
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (hover: none) {
+    .neu-btn:hover,
+    .q-accordion:hover,
+    .mcq-card:hover,
+    .stat-item:hover,
+    .feature-card:hover {
+        transform: none !important;
+        box-shadow: inherit !important;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MOBILE: keyboard shortcut panel hidden
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (hover: none), (pointer: coarse) {
+    #shortcut-panel,
+    #shortcut-panel.open {
+        pointer-events: none !important;
+        opacity: 0 !important;
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   iOS safe area
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    #fab       { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+    #study-timer { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GLOBAL PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+html { scrollbar-gutter: stable; }
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+.card, .mcq-card { will-change: box-shadow; transform: translateZ(0); }
+#top-sticky-bar  { will-change: backdrop-filter; transform: translateZ(0); }
+#fab             { will-change: transform, opacity; }
